@@ -31,17 +31,59 @@
     document.body.appendChild(renderer.domElement)
   
     const controls = new OrbitControls(camera, renderer.domElement)
+
+    class Box extends THREE.Mesh {
+      constructor ({
+        width,
+        height,
+        depth,
+        color = '#00ff00',
+        velocity = {x: 0, y: 0 , z: 0 },
+        position = {x: 0, y: 0 , z: 0 }})
+        {
+          super(
+            new THREE.BoxGeometry(width, height, depth) ,
+            new THREE.MeshStandardMaterial({ color })
+          )
+          this.height = height
+          this.width = width
+          this.depth = depth
   
-    const geometry = new THREE.BoxGeometry(1, 1, 1)
-    const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 })
-    const cube = new THREE.Mesh(geometry, material)
+          this.buttom = this.position.y - this.height / 2
+          this.top    = this.position.y + this.height / 2
+  
+          this.velocity = velocity
+      this.position.set(position.x, position.y, position.z)
+      }
+      update(group) {
+        this.buttom = this.position.y - this.height / 2
+        this.top    = this.position.y + this.height / 2
+
+        this.position.y += this.velocity.y;
+        if (this.buttom <= ground.top) this.velocity.y = 0
+      }
+    }
+  
+    const cube = new Box({
+      height : 1,
+      width  : 1,
+      depth  : 1 ,
+      velocity: {x:0 , y: -0.1, z: 0}
+    })
     cube.castShadow = true
     scene.add(cube)
 
-    const ground = new THREE.Mesh(
-      new THREE.BoxGeometry(10, 0.5, 10), 
-      new THREE.MeshStandardMaterial({ color: 0x0000ff }))
-    ground.position.y = -2
+    const ground = new Box( {
+      height : 0.2,
+      width  : 10,
+      depth  : 10,
+      color  : '#0000ff',
+      position: {
+        x: 0,
+        y: -2,
+        z: 0
+      }
+    })
     ground.receiveShadow = true
     scene.add(ground)
 
@@ -56,8 +98,9 @@
     function animate() {
       requestAnimationFrame(animate)
       renderer.render(scene, camera)
-      cube.rotation.x += 0.01
-      cube.rotation.y += 0.01
+      cube.update(ground)
+    //  cube.rotation.x += 0.01
+    //  cube.rotation.y += 0.01
     }
     animate()
   </script>
