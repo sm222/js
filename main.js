@@ -1,6 +1,9 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls'
 import { Box, boxCollision } from './box.js'
+import {ball} from './ball.js'
+
+//https://youtu.be/sPereCgQnWQ?si=8OPsM8BTY7RlDg4E
 
 
 const scene = new THREE.Scene()
@@ -153,7 +156,7 @@ function animate() {
   if (frames % spawnRate === 0) {
     if (spawnRate > 20) spawnRate -= 20
 
-    const enemy = new Box({
+    const enemy = new ball({
       width: 1,
       height: 1,
       depth: 1,
