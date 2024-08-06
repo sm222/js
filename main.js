@@ -1,50 +1,183 @@
-import * as THREE from 'three';
-const loader = new THREE.FileLoader();
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls'
+import { Box, boxCollision } from './box.js'
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setAnimationLoop( animate );
-document.body.appendChild( renderer.domElement );
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+)
+camera.position.set(4.61, 2.74, 8)
 
-const MAX_POINTS = 500;
+const renderer = new THREE.WebGLRenderer({
+  alpha: true,
+  antialias: true
+})
+renderer.shadowMap.enabled = true
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
 
-// geometry
-const geometry = new THREE.BufferGeometry();
+const controls = new OrbitControls(camera, renderer.domElement)
 
-// attributes
-const positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
-geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
 
-// draw range
-const drawCount = 2; // draw the first 2 points, only
-geometry.setDrawRange( 0, drawCount );
+const cube = new Box({
+  width: 1,
+  height: 1,
+  depth: 1,
+  velocity: {
+    x: 0,
+    y: -0.01,
+    z: 0
+  }
+})
+cube.castShadow = true
+scene.add(cube)
 
-// material
-const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+const ground = new Box({
+  width: 10,
+  height: 0.5,
+  depth: 50,
+  color: '#0369a1',
+  position: {
+    x: 0,
+    y: -2,
+    z: 0
+  }
+})
 
-// line
-const line = new THREE.Line( geometry, material );
-scene.add( line );
+const geometry = new THREE.SphereGeometry( 1, 32, 16 ); 
+const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } ); 
+const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere );
+sphere.position.y = 5
 
-const positionAttribute = line.geometry.getAttribute( 'position' );
+ground.receiveShadow = true
+scene.add(ground)
 
-let x = 0, y = 0, z = 0;
+const light = new THREE.DirectionalLight(0xffffff, 1)
+light.position.y = 3
+light.position.z = 1
+light.castShadow = true
+scene.add(light)
 
-for ( let i = 0; i < positionAttribute.count; i ++ ) {
+scene.add(new THREE.AmbientLight(0xffffff, 0.5))
 
-	positionAttribute.setXYZ( i, x, y, z );
+camera.position.z = 5
+console.log(ground.top)
+console.log(cube.bottom)
 
-    x += ( Math.random() - 0.5 ) * 30;
-    y += ( Math.random() - 0.5 ) * 30;
-    z += ( Math.random() - 0.5 ) * 30;
-
+const keys = {
+  a: {
+    pressed: false
+  },
+  d: {
+    pressed: false
+  },
+  s: {
+    pressed: false
+  },
+  w: {
+    pressed: false
+  }
 }
 
-camera.position.z = 5;
+window.addEventListener('keydown', (event) => {
+  switch (event.code) {
+    case 'KeyA':
+      keys.a.pressed = true
+      break
+    case 'KeyD':
+      keys.d.pressed = true
+      break
+    case 'KeyS':
+      keys.s.pressed = true
+      break
+    case 'KeyW':
+      keys.w.pressed = true
+      break
+    case 'Space':
+      cube.velocity.y = 0.08
+      break
+  }
+})
 
+window.addEventListener('keyup', (event) => {
+  switch (event.code) {
+    case 'KeyA':
+      keys.a.pressed = false
+      break
+    case 'KeyD':
+      keys.d.pressed = false
+      break
+    case 'KeyS':
+      keys.s.pressed = false
+      break
+    case 'KeyW':
+      keys.w.pressed = false
+      break
+  }
+})
+
+const enemies = []
+
+let frames = 0
+let spawnRate = 200
 function animate() {
-	renderer.render( scene, camera );
+  const animationId = requestAnimationFrame(animate)
+  renderer.render(scene, camera)
+
+  // movement code
+  cube.velocity.x = 0
+  cube.velocity.z = 0
+  if (keys.a.pressed) cube.velocity.x = -0.05
+  else if (keys.d.pressed) cube.velocity.x = 0.05
+
+  if (keys.s.pressed) cube.velocity.z = 0.05
+  else if (keys.w.pressed) cube.velocity.z = -0.05
+
+  cube.update(ground)
+  enemies.forEach((enemy) => {
+    enemy.update(ground)
+    if (
+      boxCollision({
+        box1: cube,
+        box2: enemy
+      })
+    ) {
+      cancelAnimationFrame(animationId)
+    }
+  })
+
+  if (frames % spawnRate === 0) {
+    if (spawnRate > 20) spawnRate -= 20
+
+    const enemy = new Box({
+      width: 1,
+      height: 1,
+      depth: 1,
+      position: {
+        x: (Math.random() - 0.5) * 10,
+        y: 0,
+        z: -20
+      },
+      velocity: {
+        x: 0,
+        y: 0,
+        z: 0.005
+      },
+      color: 'red',
+      zAcceleration: true
+    })
+    enemy.castShadow = true
+    scene.add(enemy)
+    enemies.push(enemy)
+  }
+
+  frames++
+  // cube.position.y += -0.01
+  // cube.rotation.x += 0.01
+  // cube.rotation.y += 0.01
 }
+animate()

@@ -1,107 +1,56 @@
 <style>
-    body {
-      margin: 0;
+  body {
+    margin: 0;
+  }
+</style>
+
+<script
+  async
+  src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"
+></script>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
     }
-  </style>
-  
-  <script
-    async
-    src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"
-  ></script>
+  }
+</script>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
-      }
-    }
-  </script>
-  
-  <script type="module">
-    import * as THREE from 'three'
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-  
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-  
-    const renderer = new THREE.WebGLRenderer()
-    renderer.shadowMap.enabled = true
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    document.body.appendChild(renderer.domElement)
-  
-    const controls = new OrbitControls(camera, renderer.domElement)
+<script type="module">
+  import * as THREE from 'three'
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-    class Box extends THREE.Mesh {
-      constructor ({
-        width,
-        height,
-        depth,
-        color = '#00ff00',
-        velocity = {x: 0, y: 0 , z: 0 },
-        position = {x: 0, y: 0 , z: 0 }})
-        {
-          super(
-            new THREE.BoxGeometry(width, height, depth) ,
-            new THREE.MeshStandardMaterial({ color })
-          )
-          this.height = height
-          this.width = width
-          this.depth = depth
-  
-          this.buttom = this.position.y - this.height / 2
-          this.top    = this.position.y + this.height / 2
-  
-          this.velocity = velocity
-      this.position.set(position.x, position.y, position.z)
-      }
-      update(group) {
-        this.buttom = this.position.y - this.height / 2
-        this.top    = this.position.y + this.height / 2
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  )
 
-        this.position.y += this.velocity.y;
-        if (this.buttom <= ground.top) this.velocity.y = 0
-      }
-    }
-  
-    const cube = new Box({
-      height : 1,
-      width  : 1,
-      depth  : 1 ,
-      velocity: {x:0 , y: -0.1, z: 0}
-    })
-    cube.castShadow = true
-    scene.add(cube)
+  const renderer = new THREE.WebGLRenderer()
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  document.body.appendChild(renderer.domElement)
 
-    const ground = new Box( {
-      height : 0.2,
-      width  : 10,
-      depth  : 10,
-      color  : '#0000ff',
-      position: {
-        x: 0,
-        y: -2,
-        z: 0
-      }
-    })
-    ground.receiveShadow = true
-    scene.add(ground)
+  const controls = new OrbitControls(camera, renderer.domElement)
 
-    const light = new THREE.DirectionalLight(0xffffff, 1)
-    light.position.y = 2
-    light.position.z = 3
-    light.castShadow = true
-    scene.add(light)
-  
-    camera.position.z = 5
-  
-    function animate() {
-      requestAnimationFrame(animate)
-      renderer.render(scene, camera)
-      cube.update(ground)
-    //  cube.rotation.x += 0.01
-    //  cube.rotation.y += 0.01
-    }
-    animate()
-  </script>
-  
+  const geometry = new THREE.BoxGeometry(1, 1, 1)
+  const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 })
+  const cube = new THREE.Mesh(geometry, material)
+  scene.add(cube)
+
+  const light = new THREE.DirectionalLight(0xffffff, 1)
+  scene.add(light)
+
+  camera.position.z = 5
+
+  function animate() {
+    requestAnimationFrame(animate)
+    renderer.render(scene, camera)
+    cube.rotation.x += 0.01
+    cube.rotation.y += 0.01
+  }
+  animate()
+</script>
