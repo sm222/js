@@ -11,7 +11,7 @@ export function objCollision({ obj1, obj2 }) {
 }
 
 export class Obj extends THREE.Mesh {
-  constructor({
+  constructor(
     width,
     height,
     depth,
@@ -28,19 +28,11 @@ export class Obj extends THREE.Mesh {
     },
     zAcceleration = false,
     Geometry = new THREE.BoxGeometry(width, height, depth)
-  }) {
-    if (arguments.length) {
+  ) {
       super(
         Geometry,
         new THREE.MeshStandardMaterial({ color })
       )
-    }
-    else {
-      super(
-        new THREE.BoxGeometry(width, height, depth),
-        new THREE.MeshStandardMaterial({ color })
-      )
-    }
     this.width = width
     this.height = height
     this.depth = depth

@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls'
 import { Box, boxCollision } from './box.js'
 import {ball} from './ball.js'
+import { Obj } from './obj.js'
 
 //https://youtu.be/sPereCgQnWQ?si=8OPsM8BTY7RlDg4E
 
@@ -13,7 +14,6 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 )
-camera.position.set(4.61, 2.74, 8)
 
 const renderer = new THREE.WebGLRenderer({
   alpha: true,
@@ -25,24 +25,13 @@ document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 
-
-const cube = new Box({
-  width: 1,
-  height: 1,
-  depth: 1,
-  velocity: {
-    x: 0,
-    y: -0.01,
-    z: 0
-  }
-})
-cube.castShadow = true
-scene.add(cube)
+const GameSize = 10
+const playerSpeed = 0.15
 
 const ground = new Box({
-  width: 10,
+  width: GameSize,
   height: 0.5,
-  depth: 50,
+  depth: GameSize,
   color: '#0369a1',
   position: {
     x: 0,
@@ -51,13 +40,53 @@ const ground = new Box({
   }
 })
 
-const geometry = new THREE.SphereGeometry( 1, 32, 16 ); 
-const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } ); 
-const sphere = new THREE.Mesh( geometry, material ); scene.add( sphere );
-sphere.position.y = 5
+const players = [];
+
+players[0] = new Box({
+  width: 2,
+  height: 0.4,
+  depth: 0.5,
+    velocity: {
+      x: 0,
+      y: -0.01,
+      z: 0
+    },
+    position: {
+      x: 0,
+      y: 0.5,
+      z: (GameSize / 2) - (0.5 / 2)
+    }
+  })
+  
+  players[1] = new Box({
+    width: 2,
+  height: 0.4,
+  depth: 0.5,
+  color: 'red',
+    velocity: {
+      x: 0,
+      y: -0.01,
+      z: 0
+    },
+    position: {
+      x: 0,
+      y: 0.5,
+      z: ((GameSize / 2) * - 1 ) + (0.5 / 2)
+    }
+  })
+  
+  players.forEach(player => {
+    player.castShadow = true
+    scene.add(player)
+})
+
+//players[0].castShadow = true
+//scene.add(players[0])
 
 ground.receiveShadow = true
 scene.add(ground)
+camera.position.set(ground.position.x / 2, ground.position.y + 10, ground.position.z / 2)
+camera.lookAt(ground.position)
 
 const light = new THREE.DirectionalLight(0xffffff, 1)
 light.position.y = 3
@@ -67,9 +96,8 @@ scene.add(light)
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.5))
 
-camera.position.z = 5
 console.log(ground.top)
-console.log(cube.bottom)
+console.log(players[0].bottom)
 
 const keys = {
   a: {
@@ -78,10 +106,10 @@ const keys = {
   d: {
     pressed: false
   },
-  s: {
+  left: {
     pressed: false
   },
-  w: {
+  right: {
     pressed: false
   }
 }
@@ -94,15 +122,15 @@ window.addEventListener('keydown', (event) => {
     case 'KeyD':
       keys.d.pressed = true
       break
-    case 'KeyS':
-      keys.s.pressed = true
+    case 'ArrowLeft':
+      keys.left.pressed = true
       break
-    case 'KeyW':
-      keys.w.pressed = true
+    case 'ArrowRight':
+      keys.right.pressed = true
       break
-    case 'Space':
-      cube.velocity.y = 0.08
-      break
+    //case 'Space':
+    //  players[0].velocity.y = 0.08
+    //  break
   }
 })
 
@@ -114,11 +142,11 @@ window.addEventListener('keyup', (event) => {
     case 'KeyD':
       keys.d.pressed = false
       break
-    case 'KeyS':
-      keys.s.pressed = false
-      break
-    case 'KeyW':
-      keys.w.pressed = false
+    case 'ArrowLeft':
+        keys.left.pressed = false
+        break
+    case 'ArrowRight':
+      keys.right.pressed = false
       break
   }
 })
@@ -132,20 +160,30 @@ function animate() {
   renderer.render(scene, camera)
 
   // movement code
-  cube.velocity.x = 0
-  cube.velocity.z = 0
-  if (keys.a.pressed) cube.velocity.x = -0.05
-  else if (keys.d.pressed) cube.velocity.x = 0.05
-
-  if (keys.s.pressed) cube.velocity.z = 0.05
-  else if (keys.w.pressed) cube.velocity.z = -0.05
-
-  cube.update(ground)
+  players.forEach(player => {
+    player.velocity.x = 0
+  })
+  
+  if (keys.a.pressed && players[0].position.x > (GameSize / 2) * -1 + (players[0].width / 2))
+    players[0].velocity.x = playerSpeed * -1
+  else if (keys.d.pressed && players[0].position.x < (GameSize / 2) - (players[0].width / 2))
+    players[0].velocity.x = playerSpeed
+  
+  if (keys.left.pressed) {
+    players[1].velocity.x = playerSpeed
+  }
+  else if (keys.right.pressed) 
+    players[1].velocity.x = playerSpeed * -1
+  
+  players.forEach((player) => {
+    player.update(ground)
+  })
+  
   enemies.forEach((enemy) => {
     enemy.update(ground)
     if (
       boxCollision({
-        box1: cube,
+        box1: players[0],
         box2: enemy
       })
     ) {
@@ -157,20 +195,20 @@ function animate() {
     if (spawnRate > 20) spawnRate -= 20
 
     const enemy = new ball({
-      width: 1,
-      height: 1,
-      depth: 1,
-      position: {
-        x: (Math.random() - 0.5) * 10,
-        y: 0,
-        z: -20
-      },
+      width: 2,
+      height: 2,
+      depth: 2,
+      color: 'red',
       velocity: {
         x: 0,
         y: 0,
         z: 0.005
       },
-      color: 'red',
+      position: {
+        x: (Math.random() - 0.5) * 10,
+        y: 0,
+        z: -20
+      },
       zAcceleration: true
     })
     enemy.castShadow = true
@@ -179,8 +217,8 @@ function animate() {
   }
 
   frames++
-  // cube.position.y += -0.01
-  // cube.rotation.x += 0.01
-  // cube.rotation.y += 0.01
+  // players[0].position.y += -0.01
+  // players[0].rotation.x += 0.01
+  // players[0].rotation.y += 0.01
 }
 animate()
