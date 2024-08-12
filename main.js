@@ -1,14 +1,15 @@
 import * as THREE from 'three'
-import { Box, boxCollision } from './box.js'
-import { initGame} from './game.js'
+import { initGame } from './game.js'
+import { initMenu } from './menu.js'
 
 //https://youtu.be/sPereCgQnWQ?si=8OPsM8BTY7RlDg4E
 
 
 
+initMenu()
 
-//
-initGame(10)
+
+//initGame(10)
 
 //let frames = 0
 //let spawnRate = 200
@@ -20,15 +21,10 @@ initGame(10)
 //}
 //
 //animate()
-
-  
   //    funny gamemode
-  // let ing = Math.atan2(players[1].position.y - players[0].position.y , players[1].position.x - players[0].position.x)
+  // let ing = Math.atan2(players[1].position.y - players[0].position.y , players[1].position.x - players[0].position.x)C
   // console.log(ing)
   //camera.rotation.z = ing
-
-
-
 
   //enemies.forEach((enemy) => {
     //  enemy.update(ground)

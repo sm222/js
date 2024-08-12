@@ -1,106 +1,28 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls'
-//import { scene, camera } from './main.js'
 import { Box } from './box.js'
+import { scene, camera, renderer, Draw } from './render.js'
+import { keys, KeyBordinput } from './keybord.js'
+import { initMenu } from './menu.js'
 
-let Round = 0
-let Mode  = 0
-
-const scene = new THREE.Scene()
-
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-)
-
-const renderer = new THREE.WebGLRenderer({
-  alpha: true,
-  antialias: true
-})
-
-renderer.shadowMap.enabled = true
-renderer.setSize(window.innerWidth, window.innerHeight)
-document.body.appendChild(renderer.domElement)
-const controls = new OrbitControls(camera, renderer.domElement)
-
-
-
-export let   GameSize = 15
-export let   PlayerSpeed = 0.15
-export let   stop = true
-export let   Players = []
-export let   Map     = []
-export let   Ball    = []
-export let   Light   = []
+let   Round = 0
+let   Mode  = 0
+let   GameSize = 15
+let   PlayerSpeed = 0.15
+let   Players = []
+let   Map     = []
+let   Ball    = []
+let   Light   = []
+let   Amlight
 
 let GameLoop = 1
-
-
-export const keys = {
-  a: {
-    pressed: false
-  },
-  d: {
-    pressed: false
-  },
-  left: {
-    pressed: false
-  },
-  right: {
-    pressed: false
-  },
-  space: {
-    pressed: false
-  }
-}
-
-window.addEventListener('keydown', (event) => {
-      switch (event.code) {
-    case 'KeyA':
-      keys.a.pressed = true
-      break
-    case 'KeyD':
-      keys.d.pressed = true
-      break
-    case 'ArrowLeft':
-      keys.left.pressed = true
-      break
-    case 'ArrowRight':
-      keys.right.pressed = true
-      break
-    case 'Space':
-      stop = true
-      break
-  }
-})
-
-window.addEventListener('keyup', (event) => {
-  switch (event.code) {
-    case 'KeyA':
-      keys.a.pressed = false
-      break
-    case 'KeyD':
-      keys.d.pressed = false
-      break
-    case 'ArrowLeft':
-      keys.left.pressed = false
-      break
-    case 'ArrowRight':
-      keys.right.pressed = false
-      break
-  }
-})
-
+KeyBordinput()
 
 export function initGame(gamesize) {
-  stop = false
   GameLoop = 1
+  keys.space.pressed = false
   GameSize = gamesize
   PlayerSpeed = 0.15
   Round = 0
-  //
   Map[0] = new Box({
     width: GameSize,
     height: 0.5,
@@ -150,9 +72,8 @@ export function initGame(gamesize) {
   Light[0].position.y = 3
   Light[0].position.z = 1
   Light[0].castShadow = true
-
+  Amlight = new THREE.AmbientLight(0xffffff, 0.5)
   //
-  scene.add(new THREE.AmbientLight(0xffffff, 0.5))
   Light.forEach(light => {
     light.castShadow = true
     scene.add(light)
@@ -172,17 +93,36 @@ export function initGame(gamesize) {
   Gaming()
 }
 
+function LeaveGame() {
+  GameLoop = false
+  Players.forEach(player => {
+    scene.remove(player)
+  })
+  Map.forEach(obj => {
+    scene.remove(obj)
+  })
+  Light.forEach(light => {
+    scene.remove(light)
+  })
+  scene.remove(Amlight)
+}
 
 function Gaming() {
-  renderer.render(scene, camera)
   if (GameLoop) {
+    Draw()
     requestAnimationFrame(Gaming)
-    Players.forEach(player => {
-      player.velocity.x = 0
-    })
   }
-  else
-    console.log("help")
+  else {
+    initMenu()
+  }
+  //
+  //let ing = Math.atan2(Players[1].position.y - Players[0].position.y , Players[1].position.x - Players[0].position.x)
+  //camera.rotation.z = ing
+  if (keys.space.pressed)
+    LeaveGame()
+  Players.forEach(player => {
+    player.velocity.x = 0
+  })
   if (keys.a.pressed && Players[0].position.x >
     (GameSize / 2) * -1 + (Players[0].width / 2)) {
    Players[0].velocity.x = PlayerSpeed * -1
@@ -202,7 +142,6 @@ function Gaming() {
     Players.forEach((player) => {
     player.update(Map[0])
   })
-  //renderer.render(scene, camera)
 }
 
 
