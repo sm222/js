@@ -1,75 +1,25 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls'
 import { Box, boxCollision } from './box.js'
-import {ball} from './ball.js'
-import { Obj } from './obj.js'
-import { initGame, Map, Players, GameSize, PlayerSpeed, keys } from './game.js'
+import { initGame} from './game.js'
 
 //https://youtu.be/sPereCgQnWQ?si=8OPsM8BTY7RlDg4E
 
-
-export const scene = new THREE.Scene()
-export const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-)
-
-const renderer = new THREE.WebGLRenderer({
-  alpha: true,
-  antialias: true
-})
-
-renderer.shadowMap.enabled = true
-renderer.setSize(window.innerWidth, window.innerHeight)
-document.body.appendChild(renderer.domElement)
-
-const controls = new OrbitControls(camera, renderer.domElement)
 
 
 
 //
 initGame(10)
 
-var stop = false
-
-
-
 //let frames = 0
 //let spawnRate = 200
-function animate() {
-  if (!stop)
-    requestAnimationFrame(animate)
-  renderer.render(scene, camera)
-  
-  // movement code
-  Players.forEach(player => {
-    player.velocity.x = 0
-  })
-  
-  if (keys.a.pressed && Players[0].position.x > (GameSize / 2) * -1 + (Players[0].width / 2)) {
-    Players[0].velocity.x = PlayerSpeed * -1
-  }
-  else if (keys.d.pressed && Players[0].position.x < (GameSize / 2) - (Players[0].width / 2)) {
-    Players[0].velocity.x = PlayerSpeed
-  }
-  
-  if (keys.left.pressed && Players[1].position.x > (GameSize / 2) * -1 + (Players[1].width / 2)) {
-    Players[1].velocity.x = PlayerSpeed * -1
-  }
-  else if (keys.right.pressed && Players[1].position.x < (GameSize / 2) - (Players[1].width / 2)) {
-    Players[1].velocity.x = PlayerSpeed
-  }
-
-  Players.forEach((player) => {
-    player.update(Map[0])
-  })
-}
-
-
-animate()
-
+//function animate() {
+//  if (!stop)
+//    requestAnimationFrame(animate)
+//  
+//  // movement code
+//}
+//
+//animate()
 
   
   //    funny gamemode

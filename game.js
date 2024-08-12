@@ -1,17 +1,42 @@
 import * as THREE from 'three'
-import { scene, camera } from './main.js'
+import { OrbitControls } from 'three/addons/controls/OrbitControls'
+//import { scene, camera } from './main.js'
 import { Box } from './box.js'
 
 let Round = 0
 let Mode  = 0
 
+const scene = new THREE.Scene()
+
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+)
+
+const renderer = new THREE.WebGLRenderer({
+  alpha: true,
+  antialias: true
+})
+
+renderer.shadowMap.enabled = true
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+const controls = new OrbitControls(camera, renderer.domElement)
+
+
 
 export let   GameSize = 15
 export let   PlayerSpeed = 0.15
+export let   stop = true
 export let   Players = []
 export let   Map     = []
 export let   Ball    = []
 export let   Light   = []
+
+let GameLoop = 1
+
 
 export const keys = {
   a: {
@@ -70,6 +95,8 @@ window.addEventListener('keyup', (event) => {
 
 
 export function initGame(gamesize) {
+  stop = false
+  GameLoop = 1
   GameSize = gamesize
   PlayerSpeed = 0.15
   Round = 0
@@ -142,14 +169,39 @@ export function initGame(gamesize) {
   })
   camera.position.set(Map[0].position.x / 2, Map[0].position.y + GameSize, Map[0].position.z / 2)
   camera.lookAt(Map[0].position)
-  //Gaming(gamemode)
+  Gaming()
 }
 
-let GameLoop = 1
 
 function Gaming() {
-  if (GameLoop > 0)
+  renderer.render(scene, camera)
+  if (GameLoop) {
     requestAnimationFrame(Gaming)
+    Players.forEach(player => {
+      player.velocity.x = 0
+    })
+  }
+  else
+    console.log("help")
+  if (keys.a.pressed && Players[0].position.x >
+    (GameSize / 2) * -1 + (Players[0].width / 2)) {
+   Players[0].velocity.x = PlayerSpeed * -1
+  }
+  else if (keys.d.pressed && Players[0].position.x <
+    (GameSize / 2) - (Players[0].width / 2)) {
+    Players[0].velocity.x = PlayerSpeed
+  }
+  if (keys.left.pressed && Players[1].position.x >
+    (GameSize / 2) * -1 + (Players[1].width / 2)) {
+   Players[1].velocity.x = PlayerSpeed * -1
+  }
+  else if (keys.right.pressed && Players[1].position.x <
+    (GameSize / 2) - (Players[1].width / 2)) {
+    Players[1].velocity.x = PlayerSpeed
+  }
+    Players.forEach((player) => {
+    player.update(Map[0])
+  })
   //renderer.render(scene, camera)
 }
 
